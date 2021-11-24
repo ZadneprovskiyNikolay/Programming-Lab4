@@ -12,18 +12,18 @@ struct CmdArgs {
 };
 
 struct String {
-    unsigned char* str;
+    char* str;
     size_t size;    
 };
 
 void init_String(struct String* str, int size) {
     str->size = size;
-    str->str = (unsigned char*) malloc(size * sizeof(char));
+    str->str = (char*) malloc(size * sizeof(char));
 }
 
 void extend_String(struct String* str, int size) {
     if (size > str->size)
-        str->str = (unsigned char*) realloc(str->str, size * sizeof(char));
+        str->str = (char*) realloc(str->str, size * sizeof(char));
 }
 
 // Returns 1 for valid arguments, 0 otherwise.
@@ -71,7 +71,7 @@ int parse_cmdargs(int argc, char* argv[], struct CmdArgs* cmdargs) {
     return 1;
 }
 
-int bytes_to_size(unsigned char* buffer) {
+int bytes_to_size(char* buffer) {
     int res = 0;
     for (int x = 0; x < 4; x++) {
         res += buffer[x] << (7 * (3 - x));        
@@ -79,7 +79,7 @@ int bytes_to_size(unsigned char* buffer) {
     return res;
 }
 
-void print_metadata(char* input_filename) { 
+void print_metadata(char* input_filename, char name_to_print[4]) { 
     FILE* input_file = fopen(input_filename, "rb");
     if (input_file == NULL) {
         printf("Couldn't open input file.\n");
@@ -88,7 +88,7 @@ void print_metadata(char* input_filename) {
 
     // Parse tag header.
     int tag_size;
-    unsigned char header[10];
+    char header[10];
     struct String buffer;
     init_String(&buffer, 100);
     fread(header, sizeof(header), 1, input_file);
@@ -105,7 +105,7 @@ void print_metadata(char* input_filename) {
         if (frame_size == 0) continue;
 
         // Read frame name.
-        unsigned char name[5];
+        char name[5];
         name[4] = '\0';
         for (int x = 0; x < 4; x++) 
             name[x] = header[x];
@@ -117,11 +117,13 @@ void print_metadata(char* input_filename) {
         if (bytes_read > tag_size) break;
 
         // Print frame.
-        printf("%s:\n", name, buffer.str);
-        for (int x = 0; x < frame_size; x++) {
-            printf("%c", buffer.str[x]);
+        if ((name_to_print == NULL) || (name_to_print != NULL && !strcmp(name, name_to_print))) {
+            printf("%s:\n", name, buffer.str);
+            for (int x = 0; x < frame_size; x++) {
+                printf("%c", buffer.str[x]);
+            }
+            printf("\n\n");
         }
-        printf("\n\n");
     }    
 
     fclose(input_file);
@@ -137,8 +139,11 @@ int main(int argc, char* argv[]) {
     if (cmdargs.show || cmdargs.get) {
         FILE* input_file = fopen(cmdargs.filepath, "rb");
 
-        if (cmdargs.show) {
-            print_metadata(cmdargs.filepath);
+        if (cmdargs.show) { // Show.
+            print_metadata(cmdargs.filepath, NULL);
+        }
+        else { // Get.
+            print_metadata(cmdargs.filepath, cmdargs.prop_name);
         }
     }
 
