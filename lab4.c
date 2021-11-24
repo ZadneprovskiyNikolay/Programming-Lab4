@@ -6,7 +6,7 @@ const int MAX_FILEPATH = 260;
 
 struct CmdArgs { 
     char filepath[260];
-    char prop_name[50];        
+    char prop_name[4];        
     char* prop_value;
     int show, set, get;
 };
@@ -49,7 +49,7 @@ int parse_cmdargs(int argc, char* argv[], struct CmdArgs* cmdargs) {
     // Get.
     else if (*(argv[2] + 2) == 'g') {
         cmdargs->get = 1;
-        strncpy(cmdargs->prop_name, argv[1] + 6, MAX_FILEPATH);        
+        strncpy(cmdargs->prop_name, argv[2] + 6, 4);        
     }
     // Set.    
     else if (*(argv[2] + 2) == 's') {  
@@ -58,7 +58,7 @@ int parse_cmdargs(int argc, char* argv[], struct CmdArgs* cmdargs) {
             return 0;
         }        
         cmdargs->show = 1;
-        strncpy(cmdargs->prop_name, argv[2] + 6, MAX_FILEPATH);        
+        strncpy(cmdargs->prop_name, argv[2] + 6, 4);        
         int prop_value_length = strlen(argv[3]) - 8;
         cmdargs->prop_value = (char*) malloc(prop_value_length * sizeof(char));
         strncpy(cmdargs->prop_value, argv[3] + 8, prop_value_length);        
